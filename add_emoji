@@ -1,0 +1,27 @@
+#!/bin/bash
+
+printf 'Zulip organization email: '
+read -r email
+[ -z $email ] && { echo 'No org email provided'; exit 99; }
+printf 'Zulip API key associated w/ email: '
+read -r api
+[ -z $api ] && { echo 'No API key provided'; exit 99; }
+printf 'Zulip organization API URL: '
+read -r url
+[ -z $url ] && { echo 'No org URL provided'; exit 99; }
+printf 'Where are your emojis located?: '
+read -r homedir
+[ -z $homedir ] && { echo 'No emoji director provided'; exit 99; }
+
+INPUT=emojis.csv
+OLDIFS=$IFS
+IFS=,
+[ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
+
+while read fname emoji_name
+do
+    curl "$url/v1/realm/emoji/$emoji_name" \
+        -F "data=@$homedir/$fname" \
+        -u "$email:$api"
+done < $INPUT
+IFS=$OLDIFS
